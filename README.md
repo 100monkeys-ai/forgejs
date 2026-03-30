@@ -5,7 +5,7 @@
 [![CI](https://github.com/100monkeys-ai/forgejs/actions/workflows/ci.yml/badge.svg)](https://github.com/100monkeys-ai/forgejs/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 
-Forge is an opinionated full-stack JavaScript framework with a Rust compiler at its core. It eliminates the configuration sprawl, runtime surprises, and leaky abstractions that have become the default in modern web development. Every Forge application is compiled — not bundled — from typed source to a self-contained deployable artifact.
+Forge is a Rust-powered, opinionated full-stack JavaScript framework that breaks cleanly from the Node.js era. It replaces the "assemble 50 npm packages and hope they work together" model with a unified compiler, runtime, and standard library — all first-party, all Rust-powered, all designed to work together.
 
 Forge makes one bet: that a framework with strong opinions, compile-time enforcement, and a purpose-built runtime can deliver a dramatically better developer experience than the current ecosystem of assembled parts.
 
@@ -13,13 +13,12 @@ Forge makes one bet: that a framework with strong opinions, compile-time enforce
 
 ## Features
 
-- **Rust compiler pipeline** — Built on [Oxc](https://oxc.rs/) for sub-second builds. Transform, type-strip, bundle, and emit in a single compiler pass.
-- **TC39 Signals reactivity** — No virtual DOM. Reactivity is a first-class language primitive using the TC39 Signals proposal, compiled to efficient imperative DOM updates.
-- **Compile-time boundary enforcement** — Server and client code are separated at compile time. Importing a server module from a client component is a compiler error, not a runtime failure.
-- **Self-contained binary** — `forge build` produces a single binary that embeds the V8 runtime, compiled routes, static assets, and all dependencies. Ship a file, not a folder.
-- **The Foundry** — A purpose-built package registry for Forge packages (`.fx` format). No npm, no `node_modules`, no dependency resolution surprises.
-- **WinterTC server APIs** — Server-side code uses the [WinterTC Minimum Common Web Platform API](https://wintercg.org/) exclusively. No Node.js-specific APIs, no lock-in.
-- **Forge Standard Library** — Eight production-ready FSL packages for routing, data access, authentication, testing, email, background jobs, storage, and realtime communication.
+- **Rust-powered compiler** — Built on [Oxc](https://oxc.rs/), the fastest JavaScript parser available. Transform, type-strip, bundle, and emit in a single compiler pass.
+- **TC39 Signals for reactivity** — No virtual DOM, no diffing. Reactivity is a compile-time language primitive wired directly to the DOM. No reconciler, no hydration mismatch.
+- **Compile-time client/server boundary enforcement** — Boundary violations are compile errors, not runtime surprises. Importing a server module from a client component fails the build.
+- **Self-contained server binary** — `forge build` produces one file with zero runtime dependencies. The V8 runtime, compiled routes, static assets, and all dependencies are embedded.
+- **Multiple deployment targets from one codebase** — Server binary, edge (Cloudflare Workers), static site, desktop (Tauri), and mobile — from a single `forge build` with a target flag.
+- **The Foundry** — A purpose-built package registry that fixes npm's structural problems: cryptographic author identity, exact versions by default, content-addressed storage.
 
 ---
 
@@ -38,15 +37,15 @@ Your app is live at `http://localhost:3000`.
 
 ## How Forge Differs from Next.js
 
-| Capability | Next.js | Forge |
+|  | Next.js | Forge |
 |---|---|---|
-| **Compiler** | SWC (Rust), webpack/Turbopack | Oxc-based single-pass Rust pipeline |
-| **Reactivity** | React VDOM + reconciler | TC39 Signals, no VDOM |
-| **Boundary enforcement** | Convention (`"use client"` / `"use server"`) | Compile-time error — cannot import across boundary |
-| **Packages** | npm / node_modules | The Foundry — purpose-built `.fx` registry |
-| **Deployment artifact** | Directory of files + Node.js runtime | Single self-contained binary |
-| **Server APIs** | Node.js + Web APIs (mixed) | WinterTC Minimum Common API only |
-| **Configuration** | next.config.js, tsconfig.json, postcss.config.js, ... | One `forge.toml` per project |
+| **Compiler** | Webpack/Turbopack (JS) | Rust (Oxc + Rolldown) |
+| **Reactivity** | React VDOM + hooks | TC39 Signals, no VDOM |
+| **Boundary enforcement** | Convention (`"use server"`) | Compile-time error |
+| **Packages** | npm (name squatting, ranges) | Foundry (cryptographic identity, exact versions) |
+| **Deployment** | Server (Node.js) | Binary, edge, static, desktop, mobile |
+| **Auth** | next-auth (third-party) | forge:auth (first-party) |
+| **Database** | Third-party (Prisma, Drizzle) | forge:data (first-party) |
 
 ---
 
@@ -83,23 +82,15 @@ The Forge Standard Library ships eight packages out of the box:
 
 ---
 
-## Documentation
+## Links
 
-- [Full Documentation](https://forgejs.com/docs) — Guides, API reference, and tutorials
-- [Specification](spec/README.md) — Normative technical specifications
-- [Architecture Decision Records](spec/adrs/) — Why Forge makes the choices it does
-- [Philosophy](spec/PHILOSOPHY.md) — The principles behind Forge
-
----
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code style, and the PR process.
+- **Documentation**: https://forgejs.com/docs
+- **Specification**: [spec/](spec/)
+- **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)
+- **License**: [AGPL-3.0](LICENSE)
 
 ---
 
 ## License
 
-Forge is licensed under the [GNU Affero General Public License v3.0](LICENSE).
-
-Copyright (c) 2026 100monkeys AI.
+AGPL-3.0-only © 2026 100monkeys AI, Inc.
