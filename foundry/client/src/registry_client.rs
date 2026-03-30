@@ -5,6 +5,7 @@
 use crate::error::FoundryError;
 
 /// HTTP client for communicating with a Foundry registry server.
+#[allow(dead_code)]
 pub struct RegistryClient {
     base_url: String,
     auth_token: Option<String>,
