@@ -1,0 +1,5 @@
+[build]
+# Incremental compilation enabled for faster dev builds
+
+[profile.dev]
+incremental = true

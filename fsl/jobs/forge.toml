@@ -1,0 +1,8 @@
+[package]
+name = "forge:jobs"
+version = "0.1.0-pre-alpha"
+description = "Background job queue: typed jobs, cron scheduling, retry with backoff, persistent via forge:data"
+license = "AGPL-3.0-only"
+
+[dependencies]
+"forge:data" = "0.1.0-pre-alpha"

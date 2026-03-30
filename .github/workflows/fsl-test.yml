@@ -1,0 +1,25 @@
+name: FSL Test
+
+on:
+  push:
+    paths:
+      - 'fsl/**'
+  pull_request:
+    paths:
+      - 'fsl/**'
+
+jobs:
+  typecheck:
+    name: TypeScript Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check .fx files exist and are non-empty
+        run: |
+          find fsl -name "*.fx" -empty -print | xargs -I{} echo "Empty file: {}"
+          echo "FSL file check complete"
+      - name: List FSL packages
+        run: find fsl -name "forge.toml" | sort

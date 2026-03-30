@@ -1,0 +1,43 @@
+# Rust build artifacts
+target/
+**/*.rs.bk
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (for FSL bootstrap tooling)
+node_modules/
+dist/
+.next/
+
+# Forge build output
+.forge/
+out/
+
+# mdBook output
+docs/book/
+
+# Rust Guardian
+guardian_report.*
+rust_guardian.*
+
+# Test artifacts
+*.profraw
+lcov.info

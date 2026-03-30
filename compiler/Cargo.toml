@@ -1,0 +1,22 @@
+[package]
+name = "forge-compiler"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "The Forge compiler: Oxc-based pipeline for parsing, analyzing, transforming, and bundling .fx and .ts source files"
+
+[dependencies]
+forge-shared = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+camino = { workspace = true }
+indexmap = { workspace = true }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+bytes = { workspace = true }

@@ -1,0 +1,22 @@
+[package]
+name = "foundry-client"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Foundry registry client: dependency resolution, lockfile management, package cache"
+
+[dependencies]
+forge-shared = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+camino = { workspace = true }
+reqwest = { workspace = true }
+blake3 = { workspace = true }
+indexmap = { workspace = true }
+tokio = { workspace = true }

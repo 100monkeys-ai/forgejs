@@ -1,0 +1,15 @@
+# Forge codebase owners
+* @jeshua
+
+# Compiler pipeline
+/compiler/ @jeshua
+/runtime/ @jeshua
+
+# Foundry registry
+/foundry/ @jeshua
+
+# FSL packages
+/fsl/ @jeshua
+
+# Specifications
+/spec/ @jeshua

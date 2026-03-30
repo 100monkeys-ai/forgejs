@@ -1,0 +1,40 @@
+# Foundry registry server container
+FROM rust:1.88-slim AS builder
+
+WORKDIR /build
+COPY Cargo.toml Cargo.lock ./
+COPY compiler/Cargo.toml compiler/
+COPY runtime/Cargo.toml runtime/
+COPY cli/Cargo.toml cli/
+COPY foundry/server/Cargo.toml foundry/server/
+COPY foundry/client/Cargo.toml foundry/client/
+COPY shared/Cargo.toml shared/
+
+RUN find . -name "Cargo.toml" -not -path "./Cargo.toml" | while read f; do \
+    dir=$(dirname $f); \
+    mkdir -p $dir/src; \
+    if grep -q '\[\[bin\]\]' $f; then echo "fn main() {}" > $dir/src/main.rs; fi; \
+    echo "" > $dir/src/lib.rs; \
+  done
+
+RUN cargo build --release --locked 2>/dev/null || true
+
+COPY . .
+RUN touch compiler/src/lib.rs runtime/src/lib.rs cli/src/main.rs \
+         foundry/server/src/main.rs foundry/client/src/lib.rs shared/src/lib.rs
+
+RUN cargo build --release --locked --bin foundry
+
+FROM debian:bookworm-slim AS runner
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /build/target/release/foundry /usr/local/bin/foundry
+
+WORKDIR /app
+
+EXPOSE 8080
+
+ENTRYPOINT ["foundry"]

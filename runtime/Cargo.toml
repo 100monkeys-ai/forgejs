@@ -1,0 +1,29 @@
+[package]
+name = "forge-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "The Forge runtime: deno_core-based JavaScript isolate, HTTP server, SSR, dev server, and reactive signal runtime"
+
+[dependencies]
+forge-shared = { workspace = true }
+forge-compiler = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+hyper = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+camino = { workspace = true }
+bytes = { workspace = true }
+futures = { workspace = true }
+notify = { workspace = true }
+uuid = { workspace = true }
+deno_core = { workspace = true }

@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag (e.g. v0.1.0)'
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: forge-linux-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: forge-macos-arm64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+      - name: Build release binary
+        run: cargo build --release --locked --bin forge --target ${{ matrix.target }}
+      - name: Package binary
+        run: |
+          cp target/${{ matrix.target }}/release/forge ${{ matrix.artifact }}
+          sha256sum ${{ matrix.artifact }} > ${{ matrix.artifact }}.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}
+            ${{ matrix.artifact }}.sha256
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            forge-linux-x64/forge-linux-x64
+            forge-linux-x64/forge-linux-x64.sha256
+            forge-macos-arm64/forge-macos-arm64
+            forge-macos-arm64/forge-macos-arm64.sha256
+          generate_release_notes: true

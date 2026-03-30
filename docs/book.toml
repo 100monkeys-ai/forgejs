@@ -1,0 +1,12 @@
+[book]
+title = "Forge"
+authors = ["100monkeys AI, Inc."]
+description = "Forge — a Rust-powered, opinionated full-stack JavaScript framework. Forged, not assembled."
+language = "en"
+multilingual = false
+src = "src"
+
+[output.html]
+default-theme = "coal"
+git-repository-url = "https://github.com/100monkeys-ai/forgejs"
+edit-url-template = "https://github.com/100monkeys-ai/forgejs/edit/main/docs/src/{path}"

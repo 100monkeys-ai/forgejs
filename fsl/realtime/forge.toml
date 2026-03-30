@@ -1,0 +1,8 @@
+[package]
+name = "forge:realtime"
+version = "0.1.0-pre-alpha"
+description = "WebSocket pub/sub: typed channels, presence tracking, broadcast — server and edge targets only"
+license = "AGPL-3.0-only"
+
+[dependencies]
+"forge:auth" = "0.1.0-pre-alpha"

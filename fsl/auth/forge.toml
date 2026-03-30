@@ -1,0 +1,8 @@
+[package]
+name = "forge:auth"
+version = "0.1.0-pre-alpha"
+description = "Session and token authentication: email+password, passkey (WebAuthn), OAuth providers, permission rules"
+license = "AGPL-3.0-only"
+
+[dependencies]
+"forge:data" = "0.1.0-pre-alpha"
