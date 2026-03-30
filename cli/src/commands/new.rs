@@ -13,8 +13,8 @@
 //! - Database adapter (SQLite default, PostgreSQL)
 //! - Authentication (email+password, passkey, OAuth)
 
-use clap::Args;
 use anyhow::Result;
+use clap::Args;
 
 #[derive(Debug, Args)]
 pub struct NewArgs {

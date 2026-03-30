@@ -6,8 +6,8 @@
 //!
 //! [`ForgeManifest`]: forge_shared::manifest::ForgeManifest
 
-use forge_shared::manifest::ForgeManifest;
 use crate::error::CompilerError;
+use forge_shared::manifest::ForgeManifest;
 
 /// Parse a `forge.toml` file at the given path.
 ///

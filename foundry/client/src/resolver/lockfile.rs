@@ -29,14 +29,11 @@
 //! The integrity string format is `blake3:<hex>` to be self-describing
 //! and forward-compatible with future hash algorithm changes.
 
-use crate::resolver::dependency_graph::ResolvedGraph;
 use crate::error::FoundryError;
+use crate::resolver::dependency_graph::ResolvedGraph;
 
 /// Write a resolved graph to `foundry.lock`.
-pub fn write_lockfile(
-    graph: &ResolvedGraph,
-    path: &camino::Utf8Path,
-) -> Result<(), FoundryError> {
+pub fn write_lockfile(graph: &ResolvedGraph, path: &camino::Utf8Path) -> Result<(), FoundryError> {
     let _ = (graph, path);
     // TODO: Serialize graph to TOML lockfile format
     Ok(())

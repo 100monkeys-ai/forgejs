@@ -33,5 +33,5 @@
 //!
 //! See spec/specs/001-fx-file-format.md for the full grammar.
 
-pub mod fx_syntax;
 pub mod forge_toml;
+pub mod fx_syntax;

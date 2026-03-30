@@ -1,8 +1,8 @@
 //! Foundry server error types.
 
-use thiserror::Error;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ServerError {

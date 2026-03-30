@@ -26,8 +26,8 @@
 //! "forge:test" = "*"
 //! ```
 
-use forge_shared::manifest::FoundryManifest;
 use crate::error::FoundryError;
+use forge_shared::manifest::FoundryManifest;
 
 /// Parse a `foundry.toml` file at the given path.
 pub fn parse_foundry_toml(path: &camino::Utf8Path) -> Result<FoundryManifest, FoundryError> {

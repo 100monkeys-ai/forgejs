@@ -1,7 +1,7 @@
 //! `forge update` — Update installed Foundry packages.
 
-use clap::Args;
 use anyhow::Result;
+use clap::Args;
 
 #[derive(Debug, Args)]
 pub struct UpdateArgs {

@@ -1,7 +1,7 @@
 //! `forge lint` — Run the Forge linter (Oxlint-based).
 
-use clap::Args;
 use anyhow::Result;
+use clap::Args;
 
 #[derive(Debug, Args)]
 pub struct LintArgs {

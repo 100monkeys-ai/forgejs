@@ -2,8 +2,8 @@
 //!
 //! All subcommands are defined here and delegated to their respective modules.
 
-use clap::{Parser, Subcommand};
 use anyhow::Result;
+use clap::{Parser, Subcommand};
 
 pub mod build;
 pub mod dev;

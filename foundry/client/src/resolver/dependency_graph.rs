@@ -1,7 +1,7 @@
 //! Build and resolve the package dependency graph.
 
-use std::collections::HashMap;
 use forge_shared::manifest::DependencySpec;
+use std::collections::HashMap;
 
 /// A resolved package in the dependency graph.
 #[derive(Debug, Clone)]

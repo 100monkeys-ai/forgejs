@@ -1,7 +1,7 @@
 //! `forge test` — Run the test suite.
 
-use clap::Args;
 use anyhow::Result;
+use clap::Args;
 
 #[derive(Debug, Args)]
 pub struct TestArgs {
