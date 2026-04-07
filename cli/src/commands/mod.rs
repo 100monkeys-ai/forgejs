@@ -10,6 +10,7 @@ pub mod dev;
 pub mod init;
 pub mod install;
 pub mod lint;
+pub mod migrate;
 pub mod new;
 pub mod publish;
 pub mod serve;
@@ -47,6 +48,8 @@ enum Commands {
     Install(install::InstallArgs),
     /// Update installed Foundry packages
     Update(update::UpdateArgs),
+    /// Migrate an existing Node.js application to Forge
+    Migrate(migrate::MigrateArgs),
     /// Initialize Forge in an existing directory
     Init(init::InitArgs),
 }
@@ -63,6 +66,7 @@ impl Cli {
             Commands::Publish(args) => publish::run(args).await,
             Commands::Install(args) => install::run(args).await,
             Commands::Update(args) => update::run(args).await,
+            Commands::Migrate(args) => migrate::run(args).await,
             Commands::Init(args) => init::run(args).await,
         }
     }

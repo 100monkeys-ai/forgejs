@@ -79,6 +79,16 @@ notify = "7"
 # Path handling
 camino = { version = "1", features = ["serde1"] }
 
+# Archive extraction (forge migrate)
+flate2 = "1"
+tar = "0.4"
+
+# JavaScript/TypeScript parsing (forge migrate analyzer)
+oxc_parser = "0.124"
+oxc_ast = "0.124"
+oxc_span = "0.124"
+oxc_allocator = "0.124"
+
 # Internal crates
 forge-compiler = { path = "compiler" }
 forge-runtime = { path = "runtime" }

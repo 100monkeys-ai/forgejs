@@ -149,3 +149,37 @@ pub struct FoundryPackageMetadata {
     #[serde(default)]
     pub integrity: Option<String>,
 }
+
+/// Metadata tracking the provenance of a migrated Node.js application.
+///
+/// Stored in `[project.metadata.migration]` in the generated `forge.toml`
+/// to record how the project was created and the quality of the automatic
+/// conversion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MigrationMetadata {
+    /// The source framework detected (e.g., "react", "express", "next")
+    pub source_framework: String,
+    /// Node.js version from `.nvmrc` or `package.json` `engines` field
+    #[serde(default)]
+    pub source_node_version: Option<String>,
+    /// ISO 8601 date when the migration was performed
+    pub migration_date: String,
+    /// Total dependency count in the original `package.json`
+    pub original_dep_count: usize,
+    /// Number of functions resolved as actually reachable from entry points
+    pub resolved_function_count: usize,
+    /// Percentage of source that was auto-converted without manual intervention
+    pub auto_converted_pct: f32,
+}
+
+/// Compatibility classification for a source file or function during migration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Compatibility {
+    /// Pure JS/TS — no Node.js-specific APIs, converts directly to `.fx`
+    Compatible,
+    /// Uses Node.js APIs that have WinterTC equivalents (e.g., Buffer → Uint8Array)
+    Shimmable,
+    /// Uses non-portable Node.js APIs — requires manual migration
+    NeedsManualAttention,
+}
