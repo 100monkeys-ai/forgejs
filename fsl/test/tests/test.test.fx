@@ -1,6 +1,6 @@
 // forge:test self-tests
 // These tests verify the test runner's own assertion API.
-import { describe, it, expect } from '../src/index.fx'
+import { describe, it, expect, renderComponent } from '../src/index.fx'
 
 describe('expect().toBe', () => {
   it('passes for identical primitives', () => {
@@ -26,5 +26,22 @@ describe('expect().toHaveLength', () => {
 describe('expect().toThrow', () => {
   it('catches thrown errors', () => {
     expect(() => { throw new Error('boom') }).toThrow('boom')
+  })
+})
+
+describe('renderComponent', () => {
+  it('mounts a component and renders its output', async () => {
+    // Dummy component function mimicking compiled Forge output
+    const MyComponent = (props: { title?: string } = {}) => {
+      const el = document.createElement('div')
+      el.textContent = props.title ?? 'Hello World'
+      return el
+    }
+
+    const { getByText, unmount } = await renderComponent(MyComponent, { title: 'Test Component' })
+
+    expect(getByText('Test Component')).toBeDefined()
+
+    unmount()
   })
 })
