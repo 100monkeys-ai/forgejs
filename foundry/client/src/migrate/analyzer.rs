@@ -233,6 +233,7 @@ fn check_expression(expr: &Expression<'_>, source: &str, detected: &mut Vec<Dete
         Expression::StaticMemberExpression(_) => {
             // __dirname, __filename as member access targets are covered below
         }
+        Expression::StaticMemberExpression(_) => {}
 
         // Standalone identifiers: __dirname, __filename, Buffer (as global)
         Expression::Identifier(ident) => {
