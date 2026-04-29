@@ -2,7 +2,6 @@
 
 use anyhow::Result;
 use clap::Args;
-use forge_runtime::server::http_server::{serve, ServerConfig};
 
 #[derive(Debug, Args)]
 pub struct ServeArgs {
@@ -11,14 +10,12 @@ pub struct ServeArgs {
 }
 
 pub async fn run(args: ServeArgs) -> Result<()> {
-    crate::output::info(&format!("Starting production server on :{}", args.port));
-
-    let config = ServerConfig {
+    let config = forge_runtime::server::http_server::ServerConfig {
         port: args.port,
-        ..Default::default()
+        host: "0.0.0.0".to_string(), // Keep default host for now
     };
 
-    serve(config).await?;
+    forge_runtime::server::http_server::serve(config).await?;
 
     Ok(())
 }
