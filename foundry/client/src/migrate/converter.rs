@@ -9,6 +9,8 @@
 //! - Framework pattern application (React hooks → Signals, Express → server functions)
 //! - Shim injection for shimmable APIs
 
+use std::collections::HashMap;
+
 use anyhow::Result;
 use camino::{Utf8Path, Utf8PathBuf};
 use tracing::debug;
@@ -60,11 +62,14 @@ pub fn convert_sources(
 ) -> Result<ConversionResult> {
     let mut result = ConversionResult::default();
 
+    let analyses_by_path: HashMap<_, _> = analysis
+        .file_analyses
+        .iter()
+        .map(|fa| (&fa.path, fa))
+        .collect();
+
     for source in &shaken.sources {
-        let file_analysis = analysis
-            .file_analyses
-            .iter()
-            .find(|fa| fa.path == source.path);
+        let file_analysis = analyses_by_path.get(&source.path).copied();
 
         let mut content = source.content.clone();
 
