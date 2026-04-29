@@ -97,3 +97,14 @@ pub struct CompileOptions {
     /// The project root directory
     pub project_root: camino::Utf8PathBuf,
 }
+
+/// Run the compiler pipeline with the given options.
+pub fn compile(_options: CompileOptions) -> Result<CompileOutput, error::CompilerError> {
+    // TODO: Implement the full compiler pipeline
+    Ok(CompileOutput {
+        js_bundle: Vec::new(),
+        source_map: None,
+        assets: Vec::new(),
+        diagnostics: DiagnosticBag::new(),
+    })
+}
