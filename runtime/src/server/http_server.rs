@@ -5,6 +5,8 @@
 //! accepting connections.
 
 use crate::error::RuntimeError;
+use axum::{routing::get, Router};
+use tokio::net::TcpListener;
 
 /// Configuration for the HTTP server.
 #[derive(Debug, Clone)]
@@ -27,7 +29,17 @@ impl Default for ServerConfig {
 /// Start the HTTP server with the given configuration.
 ///
 /// This function does not return until the server is shut down.
-pub async fn serve(_config: ServerConfig) -> Result<(), RuntimeError> {
-    // TODO: Initialize axum router and start serving
+pub async fn serve(config: ServerConfig) -> Result<(), RuntimeError> {
+    let app = Router::new().route("/", get(|| async { "Forge Server Running" }));
+
+    let addr = format!("{}:{}", config.host, config.port);
+    let listener = TcpListener::bind(&addr).await?;
+
+    tracing::info!("Server listening on {}", addr);
+
+    axum::serve(listener, app)
+        .await
+        .map_err(|e| RuntimeError::Http(e.to_string()))?;
+
     Ok(())
 }
