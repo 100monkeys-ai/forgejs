@@ -23,7 +23,9 @@ anyhow = { workspace = true }
 tracing = { workspace = true }
 camino = { workspace = true }
 bytes = { workspace = true }
-futures = { workspace = true }
+futures.workspace = true
 notify = { workspace = true }
 uuid = { workspace = true }
 deno_core = { workspace = true }
+tokio-stream = { workspace = true }
+futures-util = "0.3.32"
