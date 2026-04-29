@@ -30,7 +30,10 @@ mod tests {
     #[test]
     fn test_parse_version_error() {
         let err1 = parse_version("1.2").unwrap_err();
-        assert_eq!(err1, "invalid version '1.2': unexpected end of input while parsing minor version number");
+        assert_eq!(
+            err1,
+            "invalid version '1.2': unexpected end of input while parsing minor version number"
+        );
 
         let err2 = parse_version("invalid").unwrap_err();
         assert_eq!(err2, "invalid version 'invalid': unexpected character 'i' while parsing major version number");
