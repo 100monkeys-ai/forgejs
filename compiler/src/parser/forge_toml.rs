@@ -29,8 +29,8 @@ pub fn parse_forge_toml(path: &camino::Utf8Path) -> Result<ForgeManifest, Compil
 mod tests {
     use super::*;
     use camino::Utf8Path;
-    use tempfile::NamedTempFile;
     use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn test_parse_valid_forge_toml() {
@@ -48,7 +48,10 @@ authors = ["Test Author"]
         let manifest = parse_forge_toml(path).expect("Failed to parse valid TOML");
         assert_eq!(manifest.project.name, "test-project");
         assert_eq!(manifest.project.version, "0.1.0");
-        assert_eq!(manifest.project.description.as_deref(), Some("A test project"));
+        assert_eq!(
+            manifest.project.description.as_deref(),
+            Some("A test project")
+        );
         assert_eq!(manifest.project.authors, vec!["Test Author"]);
     }
 
