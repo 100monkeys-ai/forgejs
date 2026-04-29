@@ -27,7 +27,12 @@ impl RegistryClient {
         name: &str,
         version: &str,
     ) -> Result<crate::resolver::dependency_graph::ResolvedPackage, FoundryError> {
-        let url = format!("{}/packages/{}/{}", self.base_url.trim_end_matches('/'), name, version);
+        let url = format!(
+            "{}/packages/{}/{}",
+            self.base_url.trim_end_matches('/'),
+            name,
+            version
+        );
 
         let mut req = self.http.get(&url).header("X-Forge-Protocol", "1");
         if let Some(token) = &self.auth_token {
@@ -42,7 +47,9 @@ impl RegistryClient {
                     .headers()
                     .get("X-Forge-Integrity")
                     .and_then(|h| h.to_str().ok())
-                    .ok_or_else(|| FoundryError::Registry("missing X-Forge-Integrity header".into()))?
+                    .ok_or_else(|| {
+                        FoundryError::Registry("missing X-Forge-Integrity header".into())
+                    })?
                     .to_string();
 
                 Ok(crate::resolver::dependency_graph::ResolvedPackage {
