@@ -32,8 +32,37 @@ impl RegistryClient {
     }
 
     /// Download a package tarball and return its bytes.
-    pub async fn download(&self, _url: &str) -> Result<Vec<u8>, FoundryError> {
-        // TODO: Download and verify BLAKE3 integrity
-        Err(FoundryError::PackageNotFound("not implemented".to_string()))
+    pub async fn download(
+        &self,
+        package_name: &str,
+        url: &str,
+        expected_integrity: &str,
+    ) -> Result<Vec<u8>, FoundryError> {
+        let mut request = self.http.get(url);
+        if let Some(token) = &self.auth_token {
+            request = request.bearer_auth(token);
+        }
+
+        let response = request.send().await.map_err(FoundryError::Network)?;
+        let status = response.status();
+        if !status.is_success() {
+            return Err(FoundryError::Registry(format!(
+                "HTTP error {} when downloading {}",
+                status, package_name
+            )));
+        }
+
+        let bytes = response.bytes().await.map_err(FoundryError::Network)?;
+        let actual_integrity = blake3::hash(&bytes).to_hex().to_string();
+
+        if actual_integrity != expected_integrity {
+            return Err(FoundryError::IntegrityMismatch {
+                package: package_name.to_string(),
+                expected: expected_integrity.to_string(),
+                actual: actual_integrity,
+            });
+        }
+
+        Ok(bytes.to_vec())
     }
 }
