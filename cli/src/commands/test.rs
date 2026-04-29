@@ -17,18 +17,18 @@ pub struct TestArgs {
     pub filter: Option<String>,
 }
 
-fn find_tests(dir: &Path, filter: Option<&str>) -> Vec<PathBuf> {
+fn find_tests(dir: &Path, filter: Option<&str>) -> Result<Vec<PathBuf>> {
     let mut tests = Vec::new();
-    let Ok(entries) = std::fs::read_dir(dir) else {
-        return tests;
-    };
+    let entries = std::fs::read_dir(dir)?;
 
     for entry in entries.flatten() {
         let path = entry.path();
         if path.is_dir() {
             let name = path.file_name().unwrap_or_default().to_string_lossy();
             if name != "node_modules" && name != "dist" && name != "target" {
-                tests.extend(find_tests(&path, filter));
+                if let Ok(mut sub_tests) = find_tests(&path, filter) {
+                    tests.append(&mut sub_tests);
+                }
             }
         } else if let Some(ext) = path.extension() {
             if ext == "ts" || ext == "fx" {
@@ -44,12 +44,13 @@ fn find_tests(dir: &Path, filter: Option<&str>) -> Vec<PathBuf> {
             }
         }
     }
-    tests
+    Ok(tests)
 }
 
 async fn run_tests(filter: Option<&str>) -> Result<()> {
     crate::output::info("Discovering tests...");
-    let tests = find_tests(Path::new("."), filter);
+    let mut tests = find_tests(Path::new("."), filter).unwrap_or_default();
+    tests.sort();
 
     if tests.is_empty() {
         crate::output::warn("No tests found matching the criteria.");
@@ -61,13 +62,14 @@ async fn run_tests(filter: Option<&str>) -> Result<()> {
     let mut failed = 0;
 
     // Create a new ForgeRuntime to execute tests
-    let mut runtime = ForgeRuntime::new().unwrap_or_default();
+    let mut runtime = ForgeRuntime::new()?;
 
     for test in &tests {
         crate::output::info(&format!("Running {}", test.display()));
 
-        let content = std::fs::read(test)?;
+        let content = tokio::fs::read(test).await?;
         // Execute the test using the runtime on the actual content
+        // Note: Currently ForgeRuntime::execute_module is a stub, but we prepare for real execution.
         let execution_result = runtime.execute_module(&content).await;
 
         match execution_result {
@@ -84,19 +86,24 @@ async fn run_tests(filter: Option<&str>) -> Result<()> {
 
     if failed == 0 {
         crate::output::success(&format!("\nTest Summary: {} passed, 0 failed", passed));
+        Ok(())
     } else {
         crate::output::error(&format!(
             "\nTest Summary: {} passed, {} failed",
             passed, failed
         ));
+        anyhow::bail!("{} test(s) failed", failed);
     }
-
-    Ok(())
 }
 
 pub async fn run(args: TestArgs) -> Result<()> {
     let filter = args.filter.as_deref();
-    run_tests(filter).await?;
+
+    if let Err(e) = run_tests(filter).await {
+        if !args.watch {
+            return Err(e);
+        }
+    }
 
     if args.watch {
         crate::output::info("Watching for file changes...");
@@ -104,9 +111,12 @@ pub async fn run(args: TestArgs) -> Result<()> {
         let (tx, mut rx) = mpsc::unbounded_channel();
 
         let mut watcher = RecommendedWatcher::new(
-            move |res| {
-                if let Ok(event) = res {
+            move |res| match res {
+                Ok(event) => {
                     let _ = tx.send(event);
+                }
+                Err(err) => {
+                    eprintln!("watch error: {err}");
                 }
             },
             Config::default(),
@@ -121,6 +131,20 @@ pub async fn run(args: TestArgs) -> Result<()> {
             let check_event = |event: notify::Event| -> bool {
                 if event.kind.is_modify() || event.kind.is_create() || event.kind.is_remove() {
                     for path in event.paths {
+                        // Check exclusions
+                        let mut excluded = false;
+                        for comp in path.components() {
+                            let name = comp.as_os_str().to_string_lossy();
+                            if name == "node_modules" || name == "dist" || name == "target" {
+                                excluded = true;
+                                break;
+                            }
+                        }
+
+                        if excluded {
+                            continue;
+                        }
+
                         if let Some(ext) = path.extension() {
                             if ext == "ts" || ext == "fx" {
                                 return true;
@@ -147,7 +171,9 @@ pub async fn run(args: TestArgs) -> Result<()> {
 
             if should_rerun {
                 crate::output::info("\nFile change detected. Re-running tests...");
-                let _ = run_tests(filter).await;
+                if let Err(err) = run_tests(filter).await {
+                    eprintln!("Error re-running tests: {err}");
+                }
             }
         }
     }
