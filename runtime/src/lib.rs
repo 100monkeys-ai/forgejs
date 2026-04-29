@@ -40,3 +40,4 @@ pub mod error;
 pub mod isolate;
 pub mod server;
 pub mod signals;
+pub mod test;

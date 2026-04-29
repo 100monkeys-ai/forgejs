@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use clap::Args;
+use forge_runtime::test::{run_tests, TestOptions};
 
 #[derive(Debug, Args)]
 pub struct TestArgs {
@@ -12,7 +13,14 @@ pub struct TestArgs {
     pub filter: Option<String>,
 }
 
-pub async fn run(_args: TestArgs) -> Result<()> {
-    // TODO: Implement test runner
+pub async fn run(args: TestArgs) -> Result<()> {
+    let options = TestOptions {
+        watch: args.watch,
+        filter: args.filter,
+    };
+
+    // Delegate to the forge-runtime test runner implementation.
+    run_tests(options).await?;
+
     Ok(())
 }
