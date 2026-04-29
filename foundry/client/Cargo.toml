@@ -27,3 +27,7 @@ oxc_ast = { workspace = true }
 oxc_span = { workspace = true }
 oxc_allocator = { workspace = true }
 chrono = { workspace = true }
+
+[dev-dependencies]
+serial_test = "3.4.0"
+tempfile = "3.27.0"

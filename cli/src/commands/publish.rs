@@ -10,7 +10,13 @@ pub struct PublishArgs {
     pub dry_run: bool,
 }
 
-pub async fn run(_args: PublishArgs) -> Result<()> {
-    // TODO: Delegate to foundry-client publish
+pub async fn run(args: PublishArgs) -> Result<()> {
+    use foundry_client::publish::{publish_package, PublishOptions};
+
+    publish_package(PublishOptions {
+        dry_run: args.dry_run,
+    })
+    .await?;
+
     Ok(())
 }

@@ -27,7 +27,19 @@ impl Default for ServerConfig {
 /// Start the HTTP server with the given configuration.
 ///
 /// This function does not return until the server is shut down.
-pub async fn serve(_config: ServerConfig) -> Result<(), RuntimeError> {
-    // TODO: Initialize axum router and start serving
+pub async fn serve(config: ServerConfig) -> Result<(), RuntimeError> {
+    let app = axum::Router::new();
+
+    let addr = format!("{}:{}", config.host, config.port);
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .map_err(|e| RuntimeError::Http(format!("Failed to bind to {}: {}", addr, e)))?;
+
+    tracing::info!("HTTP server listening on {}", addr);
+
+    axum::serve(listener, app)
+        .await
+        .map_err(|e| RuntimeError::Http(format!("Server error: {}", e)))?;
+
     Ok(())
 }

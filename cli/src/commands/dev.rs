@@ -16,6 +16,6 @@ pub struct DevArgs {
 pub async fn run(args: DevArgs) -> Result<()> {
     crate::output::info(&format!("Starting dev server on :{}", args.port));
     crate::output::info(&format!("Forge Studio on :{}", args.studio_port));
-    // TODO: Delegate to forge-runtime dev server
+    forge_runtime::dev::dev_server::start_dev_server(args.port, args.studio_port).await?;
     Ok(())
 }

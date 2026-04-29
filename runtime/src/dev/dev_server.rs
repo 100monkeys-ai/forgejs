@@ -6,7 +6,7 @@
 use crate::error::RuntimeError;
 
 /// Start the development server.
-pub async fn start_dev_server() -> Result<(), RuntimeError> {
+pub async fn start_dev_server(_port: u16, _studio_port: u16) -> Result<(), RuntimeError> {
     // TODO: Initialize file watcher, incremental compiler, HMR, and Studio
     Ok(())
 }
