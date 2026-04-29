@@ -10,7 +10,9 @@ pub struct InitArgs {
 }
 
 pub async fn run(args: InitArgs) -> Result<()> {
-    let dir = args.directory.unwrap_or_else(|| camino::Utf8PathBuf::from("."));
+    let dir = args
+        .directory
+        .unwrap_or_else(|| camino::Utf8PathBuf::from("."));
 
     // Ensure the directory exists
     if !dir.exists() {
@@ -45,10 +47,7 @@ entry = "app/root.fx"
 
     std::fs::write(forge_toml_path.as_std_path(), toml_content)?;
 
-    crate::output::success(&format!(
-        "Initialized Forge project '{}' in {}",
-        name, dir
-    ));
+    crate::output::success(&format!("Initialized Forge project '{}' in {}", name, dir));
 
     Ok(())
 }
