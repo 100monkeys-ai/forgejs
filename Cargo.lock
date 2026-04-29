@@ -1048,6 +1048,7 @@ dependencies = [
  "bytes",
  "camino",
  "chrono",
+ "clap",
  "forge-shared",
  "foundry-client",
  "hyper",
