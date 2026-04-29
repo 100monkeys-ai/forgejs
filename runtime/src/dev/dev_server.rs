@@ -86,9 +86,14 @@ pub async fn start_dev_server(config: DevServerConfig) -> Result<(), RuntimeErro
     let listener = TcpListener::bind(&addr).await.map_err(RuntimeError::Io)?;
 
     // 3. Studio Server
-    let studio_app = Router::new().route("/", axum::routing::get(|| async { "Forge Studio (Coming soon)" }));
+    let studio_app = Router::new().route(
+        "/",
+        axum::routing::get(|| async { "Forge Studio (Coming soon)" }),
+    );
     let studio_addr = format!("0.0.0.0:{}", config.studio_port);
-    let studio_listener = TcpListener::bind(&studio_addr).await.map_err(RuntimeError::Io)?;
+    let studio_listener = TcpListener::bind(&studio_addr)
+        .await
+        .map_err(RuntimeError::Io)?;
 
     info!("Dev server listening on {}", addr);
     info!("Forge Studio listening on {}", studio_addr);

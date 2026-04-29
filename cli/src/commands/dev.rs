@@ -1,9 +1,9 @@
 //! `forge dev` — Start the development server and Forge Studio.
 
 use anyhow::Result;
+use camino::Utf8PathBuf;
 use clap::Args;
 use forge_runtime::dev::dev_server::{start_dev_server, DevServerConfig};
-use camino::Utf8PathBuf;
 
 #[derive(Debug, Args)]
 pub struct DevArgs {
