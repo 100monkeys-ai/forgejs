@@ -50,7 +50,11 @@ pub async fn run(args: BuildArgs) -> Result<()> {
 
         match forge_compiler::compile(options) {
             Ok(output) => {
-                crate::output::success(&format!("Successfully built target '{}' ({} assets)", target.name, output.assets.len() + 1));
+                crate::output::success(&format!(
+                    "Successfully built target '{}' ({} assets)",
+                    target.name,
+                    output.assets.len() + 1
+                ));
             }
             Err(e) => {
                 crate::output::error(&format!("Failed to build target '{}': {}", target.name, e));
