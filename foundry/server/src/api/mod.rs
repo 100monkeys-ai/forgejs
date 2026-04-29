@@ -16,3 +16,12 @@ pub mod auth;
 pub mod publish;
 pub mod resolve;
 pub mod search;
+
+use axum::{routing::get, Router};
+use sqlx::PgPool;
+
+pub fn router(pool: PgPool) -> Router {
+    Router::new()
+        .route("/", get(|| async { "Foundry Registry" }))
+        .with_state(pool)
+}
