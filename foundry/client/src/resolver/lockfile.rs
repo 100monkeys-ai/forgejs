@@ -85,11 +85,10 @@ pub fn write_lockfile(graph: &ResolvedGraph, path: &camino::Utf8Path) -> Result<
 pub fn read_lockfile(path: &camino::Utf8Path) -> Result<ResolvedGraph, FoundryError> {
     let content = std::fs::read_to_string(path)?;
 
-    let lockfile: Lockfile =
-        toml::from_str(&content).map_err(|e| FoundryError::ManifestParse {
-            path: path.to_string(),
-            message: format!("failed to parse lockfile: {}", e),
-        })?;
+    let lockfile: Lockfile = toml::from_str(&content).map_err(|e| FoundryError::ManifestParse {
+        path: path.to_string(),
+        message: format!("failed to parse lockfile: {}", e),
+    })?;
 
     let mut graph = ResolvedGraph::default();
 
