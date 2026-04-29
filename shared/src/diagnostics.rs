@@ -89,3 +89,43 @@ impl DiagnosticBag {
             .count()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_diagnostic_bag_error_counting() {
+        let mut bag = DiagnosticBag::new();
+        assert!(!bag.has_errors());
+        assert_eq!(bag.error_count(), 0);
+
+        let dummy_diagnostic = |severity: Severity| Diagnostic {
+            severity,
+            code: "TEST".to_string(),
+            message: "test message".to_string(),
+            span: None,
+            notes: vec![],
+            suggestion: None,
+        };
+
+        // Hints and Warnings should not count as errors
+        bag.push(dummy_diagnostic(Severity::Hint));
+        assert!(!bag.has_errors());
+        assert_eq!(bag.error_count(), 0);
+
+        bag.push(dummy_diagnostic(Severity::Warning));
+        assert!(!bag.has_errors());
+        assert_eq!(bag.error_count(), 0);
+
+        // Error should be counted
+        bag.push(dummy_diagnostic(Severity::Error));
+        assert!(bag.has_errors());
+        assert_eq!(bag.error_count(), 1);
+
+        // Ice should also be counted as an error
+        bag.push(dummy_diagnostic(Severity::Ice));
+        assert!(bag.has_errors());
+        assert_eq!(bag.error_count(), 2);
+    }
+}
