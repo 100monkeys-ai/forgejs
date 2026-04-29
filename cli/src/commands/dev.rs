@@ -1,7 +1,9 @@
 //! `forge dev` — Start the development server and Forge Studio.
 
 use anyhow::Result;
+use camino::Utf8PathBuf;
 use clap::Args;
+use forge_runtime::dev::dev_server::{start_dev_server, DevServerConfig};
 
 #[derive(Debug, Args)]
 pub struct DevArgs {
@@ -16,6 +18,14 @@ pub struct DevArgs {
 pub async fn run(args: DevArgs) -> Result<()> {
     crate::output::info(&format!("Starting dev server on :{}", args.port));
     crate::output::info(&format!("Forge Studio on :{}", args.studio_port));
-    forge_runtime::dev::dev_server::start_dev_server(args.port, args.studio_port).await?;
+
+    let config = DevServerConfig {
+        port: args.port,
+        studio_port: args.studio_port,
+        project_root: Utf8PathBuf::from("."),
+    };
+
+    start_dev_server(config).await?;
+
     Ok(())
 }

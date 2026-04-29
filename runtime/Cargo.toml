@@ -27,3 +27,4 @@ futures = { workspace = true }
 notify = { workspace = true }
 uuid = { workspace = true }
 deno_core = { workspace = true }
+tokio-stream = { version = "0.1.18", features = ["sync"] }
