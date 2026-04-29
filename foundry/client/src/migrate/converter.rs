@@ -62,14 +62,14 @@ pub fn convert_sources(
 ) -> Result<ConversionResult> {
     let mut result = ConversionResult::default();
 
-    let analyses_by_path: HashMap<_, _> = analysis
+    let analyses_by_path: HashMap<&Utf8Path, &super::analyzer::FileAnalysis> = analysis
         .file_analyses
         .iter()
-        .map(|fa| (&fa.path, fa))
+        .map(|fa| (fa.path.as_path(), fa))
         .collect();
 
     for source in &shaken.sources {
-        let file_analysis = analyses_by_path.get(&source.path).copied();
+        let file_analysis = analyses_by_path.get(source.path.as_path()).copied();
 
         let mut content = source.content.clone();
 
