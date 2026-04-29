@@ -70,7 +70,10 @@ license = "MIT"
         let manifest = result.unwrap();
         assert_eq!(manifest.package.name, "jeshua/my-lib");
         assert_eq!(manifest.package.version, "1.2.3");
-        assert_eq!(manifest.package.description.as_deref(), Some("A useful library"));
+        assert_eq!(
+            manifest.package.description.as_deref(),
+            Some("A useful library")
+        );
         assert_eq!(manifest.package.license.as_deref(), Some("MIT"));
         assert!(manifest.dependencies.contains_key("jeshua/other-lib"));
         assert!(manifest.dev_dependencies.contains_key("forge:test"));
@@ -110,7 +113,12 @@ version = 1.2.3
         match result.unwrap_err() {
             FoundryError::ManifestParse { path, message } => {
                 assert_eq!(path, utf8_path.to_string());
-                assert!(message.contains("expected newline, `#`") || message.contains("TOML parse error"), "Message was: {}", message);
+                assert!(
+                    message.contains("expected newline, `#`")
+                        || message.contains("TOML parse error"),
+                    "Message was: {}",
+                    message
+                );
             }
             err => panic!("Expected ManifestParse error, got {:?}", err),
         }
