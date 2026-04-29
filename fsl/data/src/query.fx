@@ -19,6 +19,12 @@ export interface QueryOptions<T> {
   offset?: number
 }
 
+async function executeAdapterQuery(operation: string, tableName: string, payload?: any): Promise<any> {
+  // TODO: Execute via the bound DbAdapter
+  console.log(`[fsl:data] Stub ${operation} into ${tableName}`, payload ?? '')
+  return null
+}
+
 class QueryBuilder<T> {
   private tableDef: TableDef
   private options: QueryOptions<T> = {}
@@ -49,7 +55,7 @@ class QueryBuilder<T> {
   }
 
   async all(): Promise<T[]> {
-    // TODO: Execute query via the bound DbAdapter
+    await executeAdapterQuery('SELECT', this.tableDef.name, this.options)
     return []
   }
 
@@ -59,7 +65,7 @@ class QueryBuilder<T> {
   }
 
   async count(): Promise<number> {
-    // TODO: Execute COUNT query via the bound DbAdapter
+    await executeAdapterQuery('COUNT', this.tableDef.name, this.options)
     return 0
   }
 }
@@ -70,17 +76,17 @@ export const db = {
   },
 
   async insert<T>(table: TableDef, data: Omit<T, 'id'>): Promise<T> {
-    // TODO: Execute INSERT via the bound DbAdapter
-    return data as T
+    await executeAdapterQuery('INSERT', table.name, data)
+    return { id: 1, ...data } as unknown as T
   },
 
   async update<T>(table: TableDef, id: string | number, data: Partial<T>): Promise<T | null> {
-    // TODO: Execute UPDATE via the bound DbAdapter
+    await executeAdapterQuery('UPDATE', table.name, { id, ...data })
     return null
   },
 
   async delete(table: TableDef, id: string | number): Promise<boolean> {
-    // TODO: Execute DELETE via the bound DbAdapter
+    await executeAdapterQuery('DELETE', table.name, { id })
     return false
   },
 }
