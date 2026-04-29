@@ -108,7 +108,13 @@ impl RegistryClient {
         Ok(bytes.to_vec())
     }
 
-    pub async fn publish(&self, author: &str, name: &str, manifest: String, tarball: Vec<u8>) -> Result<(), FoundryError> {
+    pub async fn publish(
+        &self,
+        author: &str,
+        name: &str,
+        manifest: String,
+        tarball: Vec<u8>,
+    ) -> Result<(), FoundryError> {
         let url = format!("{}/packages/{}/{}", self.base_url, author, name);
 
         let token = self.auth_token.as_ref().ok_or(FoundryError::AuthRequired)?;
@@ -125,7 +131,9 @@ impl RegistryClient {
             .part("manifest", manifest_part)
             .part("tarball", tarball_part);
 
-        let response: reqwest::Response = self.http.post(&url)
+        let response: reqwest::Response = self
+            .http
+            .post(&url)
             .bearer_auth(token)
             .multipart(form)
             .send()
@@ -133,7 +141,10 @@ impl RegistryClient {
 
         if !response.status().is_success() {
             let error_text = response.text().await.unwrap_or_default();
-            return Err(FoundryError::Registry(format!("Failed to publish package: {}", error_text)));
+            return Err(FoundryError::Registry(format!(
+                "Failed to publish package: {}",
+                error_text
+            )));
         }
 
         Ok(())

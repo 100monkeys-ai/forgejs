@@ -27,7 +27,10 @@ pub async fn publish_package(options: PublishOptions) -> Result<(), FoundryError
     let author = name_parts[0];
     let name = name_parts[1];
 
-    info!("Publishing {}@{}...", manifest.package.name, manifest.package.version);
+    info!(
+        "Publishing {}@{}...",
+        manifest.package.name, manifest.package.version
+    );
 
     if options.dry_run {
         info!("Dry run complete. No package published.");
@@ -41,7 +44,10 @@ pub async fn publish_package(options: PublishOptions) -> Result<(), FoundryError
     let mut tar = tar::Builder::new(enc);
 
     // Pack the directory
-    for entry in walkdir::WalkDir::new(&options.dir).into_iter().filter_map(|e: Result<walkdir::DirEntry, walkdir::Error>| e.ok()) {
+    for entry in walkdir::WalkDir::new(&options.dir)
+        .into_iter()
+        .filter_map(|e: Result<walkdir::DirEntry, walkdir::Error>| e.ok())
+    {
         let path = entry.path();
         if path.is_file() {
             let relative_path = path.strip_prefix(&options.dir).unwrap();
@@ -69,8 +75,13 @@ pub async fn publish_package(options: PublishOptions) -> Result<(), FoundryError
     let manifest_content = fs::read_to_string(&manifest_path)?;
 
     let client = RegistryClient::new(options.registry_url, Some(auth_token));
-    client.publish(author, name, manifest_content, tar_gz).await?;
+    client
+        .publish(author, name, manifest_content, tar_gz)
+        .await?;
 
-    info!("Successfully published {}@{}", manifest.package.name, manifest.package.version);
+    info!(
+        "Successfully published {}@{}",
+        manifest.package.name, manifest.package.version
+    );
     Ok(())
 }

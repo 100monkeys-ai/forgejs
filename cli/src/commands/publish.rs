@@ -1,8 +1,8 @@
 //! `forge publish` — Publish a package to the Foundry registry.
 
+use crate::config::CliConfig;
 use anyhow::Result;
 use clap::Args;
-use crate::config::CliConfig;
 
 #[derive(Debug, Args)]
 pub struct PublishArgs {
@@ -13,7 +13,9 @@ pub struct PublishArgs {
 
 pub async fn run(args: PublishArgs) -> Result<()> {
     let config = CliConfig::load();
-    let registry_url = config.registry_url.unwrap_or_else(|| "https://registry.forgejs.com".to_string());
+    let registry_url = config
+        .registry_url
+        .unwrap_or_else(|| "https://registry.forgejs.com".to_string());
 
     let options = foundry_client::publish::PublishOptions {
         dir: camino::Utf8PathBuf::from("."),

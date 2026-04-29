@@ -13,6 +13,7 @@
 //! - [`version`] — Semver version types used across the ecosystem
 
 pub mod diagnostics;
+pub mod init;
 pub mod manifest;
 pub mod source_location;
 pub mod version;
