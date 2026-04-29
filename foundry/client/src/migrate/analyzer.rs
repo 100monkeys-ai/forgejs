@@ -166,7 +166,11 @@ fn check_expression(expr: &Expression<'_>, source: &str, detected: &mut Vec<Dete
     }
 }
 
-fn check_call_expression(call: &oxc_ast::ast::CallExpression<'_>, source: &str, detected: &mut Vec<DetectedApi>) {
+fn check_call_expression(
+    call: &oxc_ast::ast::CallExpression<'_>,
+    source: &str,
+    detected: &mut Vec<DetectedApi>,
+) {
     // require('fs'), require('child_process'), etc.
     if let Expression::Identifier(ident) = &call.callee {
         if ident.name == "require" {
@@ -232,7 +236,11 @@ fn check_call_expression(call: &oxc_ast::ast::CallExpression<'_>, source: &str, 
     }
 }
 
-fn check_static_member_expression(member: &oxc_ast::ast::StaticMemberExpression<'_>, source: &str, detected: &mut Vec<DetectedApi>) {
+fn check_static_member_expression(
+    member: &oxc_ast::ast::StaticMemberExpression<'_>,
+    source: &str,
+    detected: &mut Vec<DetectedApi>,
+) {
     // process.env access (shimmable → Forge.env())
     if member.property.name == "env" {
         if let Expression::Identifier(obj) = &member.object {
@@ -249,7 +257,11 @@ fn check_static_member_expression(member: &oxc_ast::ast::StaticMemberExpression<
     // __dirname, __filename as member access targets are covered below
 }
 
-fn check_identifier(ident: &oxc_ast::ast::IdentifierReference<'_>, source: &str, detected: &mut Vec<DetectedApi>) {
+fn check_identifier(
+    ident: &oxc_ast::ast::IdentifierReference<'_>,
+    source: &str,
+    detected: &mut Vec<DetectedApi>,
+) {
     // Standalone identifiers: __dirname, __filename, Buffer (as global)
     let name = ident.name.as_str();
     match name {
@@ -273,7 +285,11 @@ fn check_identifier(ident: &oxc_ast::ast::IdentifierReference<'_>, source: &str,
     }
 }
 
-fn check_assignment_expression(assign: &oxc_ast::ast::AssignmentExpression<'_>, source: &str, detected: &mut Vec<DetectedApi>) {
+fn check_assignment_expression(
+    assign: &oxc_ast::ast::AssignmentExpression<'_>,
+    source: &str,
+    detected: &mut Vec<DetectedApi>,
+) {
     // module.exports (CJS export pattern)
     if let Some(member) = extract_member_pattern(&assign.left) {
         if member == "module.exports" {
