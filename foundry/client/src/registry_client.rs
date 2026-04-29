@@ -107,4 +107,35 @@ impl RegistryClient {
 
         Ok(bytes.to_vec())
     }
+
+    pub async fn publish(&self, author: &str, name: &str, manifest: String, tarball: Vec<u8>) -> Result<(), FoundryError> {
+        let url = format!("{}/packages/{}/{}", self.base_url, author, name);
+
+        let token = self.auth_token.as_ref().ok_or(FoundryError::AuthRequired)?;
+
+        let manifest_part = reqwest::multipart::Part::text(manifest)
+            .mime_str("text/plain;charset=utf-8")
+            .map_err(|_| FoundryError::Registry("Invalid mime type for manifest".to_string()))?;
+
+        let tarball_part = reqwest::multipart::Part::bytes(tarball)
+            .mime_str("application/x-tar")
+            .map_err(|_| FoundryError::Registry("Invalid mime type for tarball".to_string()))?;
+
+        let form = reqwest::multipart::Form::new()
+            .part("manifest", manifest_part)
+            .part("tarball", tarball_part);
+
+        let response: reqwest::Response = self.http.post(&url)
+            .bearer_auth(token)
+            .multipart(form)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let error_text = response.text().await.unwrap_or_default();
+            return Err(FoundryError::Registry(format!("Failed to publish package: {}", error_text)));
+        }
+
+        Ok(())
+    }
 }
