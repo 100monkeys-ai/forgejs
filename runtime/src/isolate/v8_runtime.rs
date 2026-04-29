@@ -15,6 +15,9 @@
 //! hot module replacement via the file watcher.
 
 use crate::error::RuntimeError;
+use crate::isolate::ops;
+use deno_core::JsRuntime;
+use deno_core::RuntimeOptions;
 
 /// The Forge JavaScript runtime.
 ///
@@ -22,18 +25,21 @@ use crate::error::RuntimeError;
 /// One `ForgeRuntime` instance exists per isolate. For the server binary,
 /// a pool of runtimes handles concurrent requests.
 pub struct ForgeRuntime {
-    // inner: deno_core::JsRuntime,
-    // Placeholder until deno_core integration is implemented
-    _phantom: std::marker::PhantomData<()>,
+    #[allow(dead_code)]
+    inner: JsRuntime,
 }
 
 impl ForgeRuntime {
     /// Create a new ForgeRuntime with the standard WinterTC op set registered.
     pub fn new() -> Result<Self, RuntimeError> {
-        // TODO: Initialize deno_core::JsRuntime with Forge ops
-        Ok(Self {
-            _phantom: std::marker::PhantomData,
-        })
+        let options = RuntimeOptions {
+            extensions: vec![ops::forge_ops::init_ops_and_esm()],
+            ..Default::default()
+        };
+
+        let inner = JsRuntime::new(options);
+
+        Ok(Self { inner })
     }
 
     /// Execute a compiled JavaScript module and return its default export.
