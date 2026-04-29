@@ -938,6 +938,7 @@ dependencies = [
  "forge-runtime",
  "forge-shared",
  "foundry-client",
+ "notify",
  "serde",
  "serde_json",
  "thiserror",
