@@ -27,3 +27,15 @@
 
 pub mod dependency_graph;
 pub mod lockfile;
+
+use crate::error::FoundryError;
+
+/// Install new packages.
+pub async fn install_packages(_packages: Vec<String>, _dev: bool) -> Result<(), FoundryError> {
+    Ok(())
+}
+
+/// Update installed packages, optionally limited to a specific package.
+pub async fn update_packages(_package: Option<String>) -> Result<(), FoundryError> {
+    Ok(())
+}
