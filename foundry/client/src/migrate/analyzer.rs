@@ -218,10 +218,8 @@ fn check_expression(expr: &Expression<'_>, source: &str, detected: &mut Vec<Dete
         }
 
         // process.env access (shimmable → Forge.env())
-        Expression::StaticMemberExpression(member) => {
-            if let (true, Expression::Identifier(obj)) =
-                (member.property.name == "env", &member.object)
-            {
+        Expression::StaticMemberExpression(member) if member.property.name == "env" => {
+            if let Expression::Identifier(obj) = &member.object {
                 if obj.name == "process" {
                     let line = line_number_at_offset(source, member.span.start);
                     detected.push(DetectedApi {
@@ -231,6 +229,8 @@ fn check_expression(expr: &Expression<'_>, source: &str, detected: &mut Vec<Dete
                     });
                 }
             }
+        }
+        Expression::StaticMemberExpression(_) => {
             // __dirname, __filename as member access targets are covered below
         }
 
