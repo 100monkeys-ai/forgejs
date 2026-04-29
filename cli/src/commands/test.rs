@@ -2,10 +2,10 @@
 
 use anyhow::Result;
 use clap::Args;
+use forge_runtime::isolate::v8_runtime::ForgeRuntime;
 use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::{Path, PathBuf};
 use tokio::sync::mpsc;
-use forge_runtime::isolate::v8_runtime::ForgeRuntime;
 use tokio::time::{sleep, Duration};
 
 #[derive(Debug, Args)]
