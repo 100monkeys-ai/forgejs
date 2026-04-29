@@ -40,3 +40,4 @@ pub mod migrate;
 pub mod publish;
 pub mod registry_client;
 pub mod resolver;
+pub mod publish;

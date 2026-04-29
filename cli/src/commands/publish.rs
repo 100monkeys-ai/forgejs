@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use clap::Args;
+use crate::config::CliConfig;
 
 #[derive(Debug, Args)]
 pub struct PublishArgs {
@@ -11,12 +12,17 @@ pub struct PublishArgs {
 }
 
 pub async fn run(args: PublishArgs) -> Result<()> {
-    use foundry_client::publish::{publish_package, PublishOptions};
+    let config = CliConfig::load();
+    let registry_url = config.registry_url.unwrap_or_else(|| "https://registry.forgejs.com".to_string());
 
-    publish_package(PublishOptions {
+    let options = foundry_client::publish::PublishOptions {
+        dir: camino::Utf8PathBuf::from("."),
         dry_run: args.dry_run,
-    })
-    .await?;
+        registry_url,
+        auth_token: config.auth_token,
+    };
+
+    foundry_client::publish::publish_package(options).await?;
 
     Ok(())
 }
