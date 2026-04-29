@@ -22,3 +22,36 @@ pub fn verify(data: &[u8], expected: &str) -> bool {
     let actual = compute(data);
     actual == expected
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_compute_empty() {
+        // blake3 hash of empty string
+        let expected = "blake3:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262";
+        assert_eq!(compute(b""), expected);
+    }
+
+    #[test]
+    fn test_compute_hello_world() {
+        // blake3 hash of "hello world"
+        let expected = "blake3:d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24";
+        assert_eq!(compute(b"hello world"), expected);
+    }
+
+    #[test]
+    fn test_verify() {
+        let empty_hash = "blake3:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262";
+        let hello_hash = "blake3:d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24";
+
+        assert!(verify(b"", empty_hash));
+        assert!(verify(b"hello world", hello_hash));
+
+        // Negative test cases
+        assert!(!verify(b"hello world", empty_hash));
+        assert!(!verify(b"", hello_hash));
+        assert!(!verify(b"hello world", "blake3:invalid"));
+    }
+}
