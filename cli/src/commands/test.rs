@@ -85,7 +85,10 @@ async fn run_tests(filter: Option<&str>) -> Result<()> {
     if failed == 0 {
         crate::output::success(&format!("\nTest Summary: {} passed, 0 failed", passed));
     } else {
-        crate::output::error(&format!("\nTest Summary: {} passed, {} failed", passed, failed));
+        crate::output::error(&format!(
+            "\nTest Summary: {} passed, {} failed",
+            passed, failed
+        ));
     }
 
     Ok(())
@@ -112,45 +115,39 @@ pub async fn run(args: TestArgs) -> Result<()> {
         watcher.watch(Path::new("."), RecursiveMode::Recursive)?;
 
         // Simple debounce loop
-        loop {
-            // Wait for the first event
-            if let Some(event) = rx.recv().await {
-                let mut should_rerun = false;
+        while let Some(event) = rx.recv().await {
+            let mut should_rerun = false;
 
-                let check_event = |event: notify::Event| -> bool {
-                    if event.kind.is_modify() || event.kind.is_create() || event.kind.is_remove() {
-                        for path in event.paths {
-                            if let Some(ext) = path.extension() {
-                                if ext == "ts" || ext == "fx" {
-                                    return true;
-                                }
+            let check_event = |event: notify::Event| -> bool {
+                if event.kind.is_modify() || event.kind.is_create() || event.kind.is_remove() {
+                    for path in event.paths {
+                        if let Some(ext) = path.extension() {
+                            if ext == "ts" || ext == "fx" {
+                                return true;
                             }
                         }
                     }
-                    false
-                };
+                }
+                false
+            };
 
-                if check_event(event) {
+            if check_event(event) {
+                should_rerun = true;
+            }
+
+            // Wait briefly for subsequent events to accumulate
+            sleep(Duration::from_millis(100)).await;
+
+            // Drain any additional events that occurred during the sleep
+            while let Ok(event) = rx.try_recv() {
+                if !should_rerun && check_event(event) {
                     should_rerun = true;
                 }
+            }
 
-                // Wait briefly for subsequent events to accumulate
-                sleep(Duration::from_millis(100)).await;
-
-                // Drain any additional events that occurred during the sleep
-                while let Ok(event) = rx.try_recv() {
-                    if !should_rerun && check_event(event) {
-                        should_rerun = true;
-                    }
-                }
-
-                if should_rerun {
-                    crate::output::info("\nFile change detected. Re-running tests...");
-                    let _ = run_tests(filter).await;
-                }
-            } else {
-                // Channel closed
-                break;
+            if should_rerun {
+                crate::output::info("\nFile change detected. Re-running tests...");
+                let _ = run_tests(filter).await;
             }
         }
     }
