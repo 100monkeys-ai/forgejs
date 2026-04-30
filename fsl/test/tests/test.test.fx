@@ -44,4 +44,15 @@ describe('renderComponent', () => {
 
     unmount()
   })
+
+  it('mounts a pre-constructed Element directly', async () => {
+    const element = document.createElement('p')
+    element.textContent = 'Pre-built element'
+
+    const { getByText, unmount } = await renderComponent(element)
+
+    expect(getByText('Pre-built element')).toBeDefined()
+
+    unmount()
+  })
 })

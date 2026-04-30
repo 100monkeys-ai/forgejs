@@ -23,8 +23,14 @@ export async function renderComponent(
 ): Promise<RenderResult> {
   const container = document.createElement('div')
 
-  const componentFn = component as (props: Record<string, unknown>) => Element
-  const element = componentFn(props ?? {})
+  let element: Element
+  if (component instanceof Element) {
+    element = component
+  } else if (typeof component === 'function') {
+    element = (component as (props: Record<string, unknown>) => Element)(props ?? {})
+  } else {
+    throw new TypeError(`renderComponent: expected a component function or an Element, got ${typeof component}`)
+  }
   container.appendChild(element)
 
   document.body.appendChild(container)
