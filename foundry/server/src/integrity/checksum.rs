@@ -22,3 +22,58 @@ pub fn verify(data: &[u8], expected: &str) -> bool {
     let actual = compute(data);
     actual == expected
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_compute_empty() {
+        // blake3 hash of empty string
+        let expected = "blake3:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262";
+        assert_eq!(compute(b""), expected);
+    }
+
+    #[test]
+    fn test_compute_hello_world() {
+        // blake3 hash of "hello world"
+        let expected = "blake3:d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24";
+        assert_eq!(compute(b"hello world"), expected);
+    }
+
+    #[test]
+    fn test_verify_happy_path() {
+        let data = b"hello world";
+        let expected = "blake3:d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24";
+        assert!(verify(data, expected));
+    }
+
+    #[test]
+    fn test_verify_modified_data() {
+        let data = b"hello world!"; // extra char
+        let expected = "blake3:d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24"; // hash of "hello world"
+        assert!(!verify(data, expected));
+    }
+
+    #[test]
+    fn test_verify_invalid_prefix() {
+        let data = b"hello world";
+        // same hash value, different prefix
+        let expected = "sha256:d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24";
+        assert!(!verify(data, expected));
+    }
+
+    #[test]
+    fn test_verify_wrong_length_hash() {
+        let data = b"hello world";
+        let expected = "blake3:d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e"; // truncated
+        assert!(!verify(data, expected));
+    }
+
+    #[test]
+    fn test_verify_empty_string() {
+        let data = b"";
+        let expected = "blake3:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262";
+        assert!(verify(data, expected));
+    }
+}

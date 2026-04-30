@@ -21,8 +21,12 @@ export async function renderComponent(
   component: unknown,
   props?: Record<string, unknown>
 ): Promise<RenderResult> {
-  // TODO: Mount the component using the Forge runtime in test mode
   const container = document.createElement('div')
+
+  const componentFn = component as (props: Record<string, unknown>) => Element
+  const element = componentFn(props ?? {})
+  container.appendChild(element)
+
   document.body.appendChild(container)
 
   return {

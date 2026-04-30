@@ -44,3 +44,59 @@ impl SourceSpan {
         self.len() == 0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_source_span_is_empty() {
+        let pos1 = SourcePosition {
+            offset: 10,
+            line: 1,
+            column: 11,
+        };
+        let pos2 = SourcePosition {
+            offset: 20,
+            line: 2,
+            column: 5,
+        };
+
+        let empty_span = SourceSpan {
+            file: Utf8PathBuf::from("test.js"),
+            start: pos1,
+            end: pos1,
+        };
+
+        let non_empty_span = SourceSpan {
+            file: Utf8PathBuf::from("test.js"),
+            start: pos1,
+            end: pos2,
+        };
+
+        // Test is_empty
+        assert!(
+            empty_span.is_empty(),
+            "Span with identical start and end should be empty"
+        );
+        assert!(
+            !non_empty_span.is_empty(),
+            "Span with different start and end should not be empty"
+        );
+
+        // Test len
+        assert_eq!(empty_span.len(), 0, "Empty span length should be 0");
+        assert_eq!(
+            non_empty_span.len(),
+            10,
+            "Non-empty span length should be the difference between offsets"
+        );
+
+        // Test is_point
+        assert!(empty_span.is_point(), "Empty span should be a point");
+        assert!(
+            !non_empty_span.is_point(),
+            "Non-empty span should not be a point"
+        );
+    }
+}

@@ -14,3 +14,28 @@ pub use semver::{Version, VersionReq};
 pub fn parse_version(s: &str) -> Result<Version, String> {
     Version::parse(s).map_err(|e| format!("invalid version '{}': {}", s, e))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_version_success() {
+        let version = parse_version("1.2.3").unwrap();
+        assert_eq!(version.major, 1);
+        assert_eq!(version.minor, 2);
+        assert_eq!(version.patch, 3);
+    }
+
+    #[test]
+    fn test_parse_version_error() {
+        let err1 = parse_version("1.2").unwrap_err();
+        assert_eq!(
+            err1,
+            "invalid version '1.2': unexpected end of input while parsing minor version number"
+        );
+
+        let err2 = parse_version("invalid").unwrap_err();
+        assert_eq!(err2, "invalid version 'invalid': unexpected character 'i' while parsing major version number");
+    }
+}

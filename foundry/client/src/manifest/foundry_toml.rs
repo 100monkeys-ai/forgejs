@@ -37,3 +37,90 @@ pub fn parse_foundry_toml(path: &camino::Utf8Path) -> Result<FoundryManifest, Fo
         message: e.to_string(),
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_parse_foundry_toml_success() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("foundry.toml");
+        let toml_content = r#"
+[package]
+name = "jeshua/my-lib"
+version = "1.2.3"
+description = "A useful library"
+license = "MIT"
+
+[dependencies]
+"jeshua/other-lib" = "2.0.0"
+
+[dev-dependencies]
+"forge:test" = "*"
+"#;
+        fs::write(&file_path, toml_content).unwrap();
+
+        let utf8_path = camino::Utf8Path::from_path(&file_path).unwrap();
+        let result = parse_foundry_toml(utf8_path);
+        assert!(result.is_ok());
+
+        let manifest = result.unwrap();
+        assert_eq!(manifest.package.name, "jeshua/my-lib");
+        assert_eq!(manifest.package.version, "1.2.3");
+        assert_eq!(
+            manifest.package.description.as_deref(),
+            Some("A useful library")
+        );
+        assert_eq!(manifest.package.license.as_deref(), Some("MIT"));
+        assert!(manifest.dependencies.contains_key("jeshua/other-lib"));
+        assert!(manifest.dev_dependencies.contains_key("forge:test"));
+    }
+
+    #[test]
+    fn test_parse_foundry_toml_io_error() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("does_not_exist.toml");
+
+        let utf8_path = camino::Utf8Path::from_path(&file_path).unwrap();
+        let result = parse_foundry_toml(utf8_path);
+
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            FoundryError::Io(_) => {} // Expected
+            err => panic!("Expected Io error, got {:?}", err),
+        }
+    }
+
+    #[test]
+    fn test_parse_foundry_toml_manifest_parse_error() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("foundry.toml");
+        // Missing quotes around version value
+        let toml_content = r#"
+[package]
+name = "jeshua/my-lib"
+version = 1.2.3
+"#;
+        fs::write(&file_path, toml_content).unwrap();
+
+        let utf8_path = camino::Utf8Path::from_path(&file_path).unwrap();
+        let result = parse_foundry_toml(utf8_path);
+
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            FoundryError::ManifestParse { path, message } => {
+                assert_eq!(path, utf8_path.to_string());
+                assert!(
+                    message.contains("expected newline, `#`")
+                        || message.contains("TOML parse error"),
+                    "Message was: {}",
+                    message
+                );
+            }
+            err => panic!("Expected ManifestParse error, got {:?}", err),
+        }
+    }
+}

@@ -9,7 +9,7 @@ pub struct UpdateArgs {
     pub package: Option<String>,
 }
 
-pub async fn run(_args: UpdateArgs) -> Result<()> {
-    // TODO: Delegate to foundry-client resolver
+pub async fn run(args: UpdateArgs) -> Result<()> {
+    foundry_client::resolver::update_packages(args.package).await?;
     Ok(())
 }

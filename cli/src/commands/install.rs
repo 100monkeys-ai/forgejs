@@ -12,7 +12,7 @@ pub struct InstallArgs {
     pub dev: bool,
 }
 
-pub async fn run(_args: InstallArgs) -> Result<()> {
-    // TODO: Delegate to foundry-client resolver
+pub async fn run(args: InstallArgs) -> Result<()> {
+    foundry_client::resolver::install_packages(args.packages, args.dev).await?;
     Ok(())
 }

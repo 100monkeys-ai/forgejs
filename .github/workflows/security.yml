@@ -23,7 +23,13 @@ jobs:
           # sqlx's proc-macro crate pulls unconditionally regardless of features.
           # Forge never performs RSA operations; rsa is never invoked at runtime.
           # Revisit when sqlx gates sqlx-mysql behind a feature flag.
-          ignore: RUSTSEC-2023-0071
+          #
+          # RUSTSEC-2026-0097: rand unsoundness via custom logger + rand::rng().
+          # No patched version exists for rand 0.8.x or 0.9.x. rand is a purely
+          # transitive dependency; Forge defines no custom logger that accesses
+          # rand::rng(), so the unsoundness preconditions are not met.
+          # Remove when a patched rand version is released.
+          ignore: RUSTSEC-2023-0071,RUSTSEC-2026-0097
 
   codeql:
     name: CodeQL

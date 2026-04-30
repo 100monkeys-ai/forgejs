@@ -16,6 +16,7 @@ use futures::stream::Stream;
 use std::convert::Infallible;
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
+use tokio_stream::StreamExt;
 
 /// Message sent over the HMR broadcast channel.
 #[derive(Debug, Clone, serde::Serialize)]
@@ -60,7 +61,7 @@ impl HmrState {
 }
 
 /// Create the axum router for the HMR endpoint.
-pub fn hmr_router(state: HmrState) -> Router {
+pub fn hmr_router(state: HmrState) -> Router<()> {
     Router::new()
         .route("/_forge/hmr", get(hmr_endpoint))
         .with_state(state)
@@ -71,8 +72,8 @@ async fn hmr_endpoint(
     State(state): State<HmrState>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let rx = state.tx.subscribe();
-    let stream = futures::StreamExt::filter_map(BroadcastStream::new(rx), |msg| {
-        let res = match msg {
+    let stream = BroadcastStream::new(rx).filter_map(|msg| {
+        match msg {
             Ok(msg) => match serde_json::to_string(&msg) {
                 Ok(json) => Some(Ok(Event::default().data(json))),
                 Err(e) => {
@@ -82,8 +83,7 @@ async fn hmr_endpoint(
             },
             // Ignore lag errors
             Err(_) => None,
-        };
-        std::future::ready(res)
+        }
     });
 
     Sse::new(stream).keep_alive(axum::response::sse::KeepAlive::new())

@@ -43,3 +43,98 @@ pub fn is_cached(integrity: &str) -> bool {
     let hash = integrity.strip_prefix("blake3:").unwrap_or(integrity);
     cache_dir().join(hash).exists()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serial_test::serial;
+    use tempfile::TempDir;
+
+    /// Helper struct to manage the HOME environment variable for tests
+    struct EnvGuard {
+        old_home: Option<String>,
+    }
+
+    impl EnvGuard {
+        fn new(temp_dir: &Utf8PathBuf) -> Self {
+            let old_home = std::env::var("HOME").ok();
+            std::env::set_var("HOME", temp_dir.as_str());
+            Self { old_home }
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            match &self.old_home {
+                Some(home) => std::env::set_var("HOME", home),
+                None => std::env::remove_var("HOME"),
+            }
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_cache_dir_resolves_from_home() {
+        let temp = TempDir::new().unwrap();
+        let temp_path = Utf8PathBuf::from_path_buf(temp.path().to_path_buf()).unwrap();
+        let _guard = EnvGuard::new(&temp_path);
+
+        let expected = temp_path.join(".forge").join("cache");
+        assert_eq!(cache_dir(), expected);
+    }
+
+    #[test]
+    #[serial]
+    fn test_cache_dir_defaults_to_dot() {
+        let old_home = std::env::var("HOME").ok();
+        std::env::remove_var("HOME");
+
+        let expected = Utf8PathBuf::from(".").join(".forge").join("cache");
+        assert_eq!(cache_dir(), expected);
+
+        if let Some(home) = old_home {
+            std::env::set_var("HOME", home);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_is_cached_with_prefix() {
+        let temp = TempDir::new().unwrap();
+        let temp_path = Utf8PathBuf::from_path_buf(temp.path().to_path_buf()).unwrap();
+        let _guard = EnvGuard::new(&temp_path);
+
+        let hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        let cache_path = cache_dir().join(hash);
+        std::fs::create_dir_all(&cache_path).unwrap();
+
+        assert!(is_cached(&format!("blake3:{}", hash)));
+    }
+
+    #[test]
+    #[serial]
+    fn test_is_cached_without_prefix() {
+        let temp = TempDir::new().unwrap();
+        let temp_path = Utf8PathBuf::from_path_buf(temp.path().to_path_buf()).unwrap();
+        let _guard = EnvGuard::new(&temp_path);
+
+        let hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        let cache_path = cache_dir().join(hash);
+        std::fs::create_dir_all(&cache_path).unwrap();
+
+        assert!(is_cached(hash));
+    }
+
+    #[test]
+    #[serial]
+    fn test_is_cached_not_found() {
+        let temp = TempDir::new().unwrap();
+        let temp_path = Utf8PathBuf::from_path_buf(temp.path().to_path_buf()).unwrap();
+        let _guard = EnvGuard::new(&temp_path);
+
+        let hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+
+        assert!(!is_cached(&format!("blake3:{}", hash)));
+        assert!(!is_cached(hash));
+    }
+}

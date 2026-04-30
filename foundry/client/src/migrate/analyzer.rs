@@ -147,135 +147,162 @@ fn scan_statements(
         }
     }
 }
-
 /// Check an expression tree for Node.js API patterns.
 fn check_expression(expr: &Expression<'_>, source: &str, detected: &mut Vec<DetectedApi>) {
     match expr {
-        // require('fs'), require('child_process'), etc.
         Expression::CallExpression(call) => {
-            if let Expression::Identifier(ident) = &call.callee {
-                if ident.name == "require" {
-                    if let Some(Argument::StringLiteral(lit)) = call.arguments.first() {
-                        if let Some(api) = classify_import_specifier(lit.value.as_str()) {
-                            let line = line_number_at_offset(source, call.span.start);
-                            detected.push(api.with_line(line));
-                        }
-                    }
-                }
-            }
-
-            // Check for shimmable patterns: Buffer.from(), Buffer.alloc(), crypto.randomBytes()
-            if let Expression::StaticMemberExpression(member) = &call.callee {
-                let prop = member.property.name.as_str();
-                if let Expression::Identifier(obj) = &member.object {
-                    let obj_name = obj.name.as_str();
-                    if obj_name == "Buffer" && (prop == "from" || prop == "alloc") {
-                        let line = line_number_at_offset(source, call.span.start);
-                        detected.push(DetectedApi {
-                            pattern: format!("Buffer.{prop}()"),
-                            line,
-                            compatibility: Compatibility::Shimmable,
-                        });
-                    }
-                    if obj_name == "crypto" && prop == "randomBytes" {
-                        let line = line_number_at_offset(source, call.span.start);
-                        detected.push(DetectedApi {
-                            pattern: "crypto.randomBytes()".into(),
-                            line,
-                            compatibility: Compatibility::Shimmable,
-                        });
-                    }
-                }
-            }
-
-            // process.exit()
-            if let Expression::StaticMemberExpression(member) = &call.callee {
-                if member.property.name == "exit" {
-                    if let Expression::Identifier(obj) = &member.object {
-                        if obj.name == "process" {
-                            let line = line_number_at_offset(source, call.span.start);
-                            detected.push(DetectedApi {
-                                pattern: "process.exit()".into(),
-                                line,
-                                compatibility: Compatibility::NeedsManualAttention,
-                            });
-                        }
-                    }
-                }
-            }
-
-            // Recurse into call arguments
-            for arg in &call.arguments {
-                if let Argument::FunctionExpression(fn_expr) = arg {
-                    if let Some(body) = &fn_expr.body {
-                        scan_statements(&body.statements, source, detected);
-                    }
-                }
-                if let Argument::ArrowFunctionExpression(arrow) = arg {
-                    scan_statements(&arrow.body.statements, source, detected);
-                }
-            }
+            check_call_expression(call, source, detected);
         }
-
-        // process.env access (shimmable → Forge.env())
-        Expression::StaticMemberExpression(member) if member.property.name == "env" => {
-            if let Expression::Identifier(obj) = &member.object {
-                if obj.name == "process" {
-                    let line = line_number_at_offset(source, member.span.start);
-                    detected.push(DetectedApi {
-                        pattern: "process.env".into(),
-                        line,
-                        compatibility: Compatibility::Shimmable,
-                    });
-                }
-            }
-            // __dirname, __filename as member access targets are covered below
+        Expression::StaticMemberExpression(member) => {
+            check_static_member_expression(member, source, detected);
         }
-        Expression::StaticMemberExpression(_) => {}
-
-        // Standalone identifiers: __dirname, __filename, Buffer (as global)
         Expression::Identifier(ident) => {
-            let name = ident.name.as_str();
-            match name {
-                "__dirname" | "__filename" => {
-                    let line = line_number_at_offset(source, ident.span.start);
-                    detected.push(DetectedApi {
-                        pattern: name.to_string(),
-                        line,
-                        compatibility: Compatibility::NeedsManualAttention,
-                    });
-                }
-                "Buffer" => {
-                    let line = line_number_at_offset(source, ident.span.start);
-                    detected.push(DetectedApi {
-                        pattern: "Buffer (global)".into(),
-                        line,
-                        compatibility: Compatibility::NeedsManualAttention,
-                    });
-                }
-                _ => {}
-            }
+            check_identifier(ident, source, detected);
         }
-
-        // module.exports (CJS export pattern)
         Expression::AssignmentExpression(assign) => {
-            if let Some(member) = extract_member_pattern(&assign.left) {
-                if member == "module.exports" {
-                    let line = line_number_at_offset(source, assign.span.start);
-                    detected.push(DetectedApi {
-                        pattern: "module.exports".into(),
-                        line,
-                        compatibility: Compatibility::NeedsManualAttention,
-                    });
-                }
-            }
-            check_expression(&assign.right, source, detected);
+            check_assignment_expression(assign, source, detected);
         }
-
         _ => {}
     }
 }
 
+fn check_call_expression(
+    call: &oxc_ast::ast::CallExpression<'_>,
+    source: &str,
+    detected: &mut Vec<DetectedApi>,
+) {
+    // require('fs'), require('child_process'), etc.
+    if let Expression::Identifier(ident) = &call.callee {
+        if ident.name == "require" {
+            if let Some(Argument::StringLiteral(lit)) = call.arguments.first() {
+                if let Some(api) = classify_import_specifier(lit.value.as_str()) {
+                    let line = line_number_at_offset(source, call.span.start);
+                    detected.push(api.with_line(line));
+                }
+            }
+        }
+    }
+
+    // Check for shimmable patterns: Buffer.from(), Buffer.alloc(), crypto.randomBytes()
+    if let Expression::StaticMemberExpression(member) = &call.callee {
+        let prop = member.property.name.as_str();
+        if let Expression::Identifier(obj) = &member.object {
+            let obj_name = obj.name.as_str();
+            if obj_name == "Buffer" && (prop == "from" || prop == "alloc") {
+                let line = line_number_at_offset(source, call.span.start);
+                detected.push(DetectedApi {
+                    pattern: format!("Buffer.{prop}()"),
+                    line,
+                    compatibility: Compatibility::Shimmable,
+                });
+            }
+            if obj_name == "crypto" && prop == "randomBytes" {
+                let line = line_number_at_offset(source, call.span.start);
+                detected.push(DetectedApi {
+                    pattern: "crypto.randomBytes()".into(),
+                    line,
+                    compatibility: Compatibility::Shimmable,
+                });
+            }
+        }
+    }
+
+    // process.exit()
+    if let Expression::StaticMemberExpression(member) = &call.callee {
+        if member.property.name == "exit" {
+            if let Expression::Identifier(obj) = &member.object {
+                if obj.name == "process" {
+                    let line = line_number_at_offset(source, call.span.start);
+                    detected.push(DetectedApi {
+                        pattern: "process.exit()".into(),
+                        line,
+                        compatibility: Compatibility::NeedsManualAttention,
+                    });
+                }
+            }
+        }
+    }
+
+    // Recurse into call arguments
+    for arg in &call.arguments {
+        if let Argument::FunctionExpression(fn_expr) = arg {
+            if let Some(body) = &fn_expr.body {
+                scan_statements(&body.statements, source, detected);
+            }
+        }
+        if let Argument::ArrowFunctionExpression(arrow) = arg {
+            scan_statements(&arrow.body.statements, source, detected);
+        }
+    }
+}
+
+fn check_static_member_expression(
+    member: &oxc_ast::ast::StaticMemberExpression<'_>,
+    source: &str,
+    detected: &mut Vec<DetectedApi>,
+) {
+    // process.env access (shimmable → Forge.env())
+    if member.property.name == "env" {
+        if let Expression::Identifier(obj) = &member.object {
+            if obj.name == "process" {
+                let line = line_number_at_offset(source, member.span.start);
+                detected.push(DetectedApi {
+                    pattern: "process.env".into(),
+                    line,
+                    compatibility: Compatibility::Shimmable,
+                });
+            }
+        }
+    }
+    // __dirname, __filename as member access targets are covered below
+}
+
+fn check_identifier(
+    ident: &oxc_ast::ast::IdentifierReference<'_>,
+    source: &str,
+    detected: &mut Vec<DetectedApi>,
+) {
+    // Standalone identifiers: __dirname, __filename, Buffer (as global)
+    let name = ident.name.as_str();
+    match name {
+        "__dirname" | "__filename" => {
+            let line = line_number_at_offset(source, ident.span.start);
+            detected.push(DetectedApi {
+                pattern: name.to_string(),
+                line,
+                compatibility: Compatibility::NeedsManualAttention,
+            });
+        }
+        "Buffer" => {
+            let line = line_number_at_offset(source, ident.span.start);
+            detected.push(DetectedApi {
+                pattern: "Buffer (global)".into(),
+                line,
+                compatibility: Compatibility::NeedsManualAttention,
+            });
+        }
+        _ => {}
+    }
+}
+
+fn check_assignment_expression(
+    assign: &oxc_ast::ast::AssignmentExpression<'_>,
+    source: &str,
+    detected: &mut Vec<DetectedApi>,
+) {
+    // module.exports (CJS export pattern)
+    if let Some(member) = extract_member_pattern(&assign.left) {
+        if member == "module.exports" {
+            let line = line_number_at_offset(source, assign.span.start);
+            detected.push(DetectedApi {
+                pattern: "module.exports".into(),
+                line,
+                compatibility: Compatibility::NeedsManualAttention,
+            });
+        }
+    }
+    check_expression(&assign.right, source, detected);
+}
 /// Try to extract a `obj.prop` pattern string from an assignment target.
 fn extract_member_pattern(target: &oxc_ast::ast::AssignmentTarget<'_>) -> Option<String> {
     if let oxc_ast::ast::AssignmentTarget::StaticMemberExpression(member) = target {

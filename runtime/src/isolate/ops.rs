@@ -29,3 +29,11 @@
 //!
 //! This is enforced both here (no ops registered) and by the compiler's
 //! boundary analyzer for edge targets.
+
+use deno_core::extension;
+use deno_core::op2;
+
+#[op2(fast)]
+pub fn op_forge_noop() {}
+
+extension!(forge_ops, ops = [op_forge_noop]);
