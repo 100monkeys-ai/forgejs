@@ -7,6 +7,9 @@ use forge_runtime::dev::dev_server::{start_dev_server, DevServerConfig};
 
 #[derive(Debug, Args)]
 pub struct DevArgs {
+    /// Host to bind to (default: 127.0.0.1)
+    #[arg(long, default_value = "127.0.0.1")]
+    pub host: String,
     /// Port for the dev server (default: 3000)
     #[arg(long, default_value = "3000")]
     pub port: u16,
@@ -16,10 +19,17 @@ pub struct DevArgs {
 }
 
 pub async fn run(args: DevArgs) -> Result<()> {
-    crate::output::info(&format!("Starting dev server on :{}", args.port));
-    crate::output::info(&format!("Forge Studio on :{}", args.studio_port));
+    crate::output::info(&format!(
+        "Starting dev server on {}:{}",
+        args.host, args.port
+    ));
+    crate::output::info(&format!(
+        "Forge Studio on {}:{}",
+        args.host, args.studio_port
+    ));
 
     let config = DevServerConfig {
+        host: args.host,
         port: args.port,
         studio_port: args.studio_port,
         project_root: Utf8PathBuf::from("."),
