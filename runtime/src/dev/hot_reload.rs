@@ -61,7 +61,7 @@ impl HmrState {
 }
 
 /// Create the axum router for the HMR endpoint.
-pub fn hmr_router(state: HmrState) -> Router {
+pub fn hmr_router(state: HmrState) -> Router<()> {
     Router::new()
         .route("/_forge/hmr", get(hmr_endpoint))
         .with_state(state)
@@ -74,10 +74,13 @@ async fn hmr_endpoint(
     let rx = state.tx.subscribe();
     let stream = BroadcastStream::new(rx).filter_map(|msg| {
         match msg {
-            Ok(msg) => {
-                let json = serde_json::to_string(&msg).unwrap_or_default();
-                Some(Ok(Event::default().data(json)))
-            }
+            Ok(msg) => match serde_json::to_string(&msg) {
+                Ok(json) => Some(Ok(Event::default().data(json))),
+                Err(e) => {
+                    tracing::error!("Failed to serialize HMR message: {}", e);
+                    None
+                }
+            },
             // Ignore lag errors
             Err(_) => None,
         }

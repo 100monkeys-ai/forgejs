@@ -41,3 +41,4 @@ rust_guardian.*
 # Test artifacts
 *.profraw
 lcov.info
+update_analyzer.sh

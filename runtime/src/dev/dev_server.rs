@@ -15,6 +15,8 @@ use tracing::{error, info};
 /// Configuration for the development server.
 #[derive(Debug, Clone)]
 pub struct DevServerConfig {
+    /// Host to bind to (default: 127.0.0.1)
+    pub host: String,
     /// Port for the dev server (default: 3000)
     pub port: u16,
     /// Port for Forge Studio (default: 3001)
@@ -26,6 +28,7 @@ pub struct DevServerConfig {
 impl Default for DevServerConfig {
     fn default() -> Self {
         Self {
+            host: "127.0.0.1".to_string(),
             port: 3000,
             studio_port: 3001,
             project_root: Utf8PathBuf::from("."),
@@ -42,21 +45,35 @@ pub async fn start_dev_server(config: DevServerConfig) -> Result<(), RuntimeErro
 
     let mut watcher = RecommendedWatcher::new(
         move |res| {
-            let _ = tx.blocking_send(res);
+            if let Err(e) = tx.try_send(res) {
+                tracing::warn!("Failed to send watcher event: {}", e);
+            }
         },
         Config::default(),
     )
     .map_err(|e| RuntimeError::Internal(format!("Failed to initialize watcher: {}", e)))?;
 
-    // Watch the src directory
-    let src_dir = config.project_root.join("src");
-    if src_dir.exists() {
-        watcher
-            .watch(src_dir.as_std_path(), RecursiveMode::Recursive)
-            .map_err(|e| RuntimeError::Internal(format!("Failed to watch src directory: {}", e)))?;
-        info!("Watching {} for changes", src_dir);
-    } else {
-        error!("src directory not found in {}", config.project_root);
+    // Watch relevant directories
+    let watch_dirs = ["app", "public", "src"];
+    let mut watching_any = false;
+    for dir in watch_dirs {
+        let path = config.project_root.join(dir);
+        if path.exists() {
+            watcher
+                .watch(path.as_std_path(), RecursiveMode::Recursive)
+                .map_err(|e| {
+                    RuntimeError::Internal(format!("Failed to watch {} directory: {}", dir, e))
+                })?;
+            info!("Watching {} for changes", path);
+            watching_any = true;
+        }
+    }
+
+    if !watching_any {
+        error!(
+            "No recognizable source directories (app, public, src) found in {}",
+            config.project_root
+        );
     }
 
     // Spawn a background task to process file watcher events and trigger HMR
@@ -82,7 +99,7 @@ pub async fn start_dev_server(config: DevServerConfig) -> Result<(), RuntimeErro
     // 2. Main App Server (incorporates HMR router)
     // TODO: Combine with the actual app router
     let app = hmr_router(hmr_state.clone());
-    let addr = format!("0.0.0.0:{}", config.port);
+    let addr = format!("{}:{}", config.host, config.port);
     let listener = TcpListener::bind(&addr).await.map_err(RuntimeError::Io)?;
 
     // 3. Studio Server
@@ -90,7 +107,7 @@ pub async fn start_dev_server(config: DevServerConfig) -> Result<(), RuntimeErro
         "/",
         axum::routing::get(|| async { "Forge Studio (Coming soon)" }),
     );
-    let studio_addr = format!("0.0.0.0:{}", config.studio_port);
+    let studio_addr = format!("{}:{}", config.host, config.studio_port);
     let studio_listener = TcpListener::bind(&studio_addr)
         .await
         .map_err(RuntimeError::Io)?;
